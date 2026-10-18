@@ -46,16 +46,22 @@ export const createTicket = async (req: Request, res: Response) => {
   try {
     const { title, description, priority } = req.body;
 
-    if (!title || !description || !priority) {
+    if (!title) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        message: "Missing required fields: title, description, priority",
+        message: "Missing required field: title",
+      });
+    }
+
+    if (!description) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: "Missing required field: description",
       });
     }
 
     const allowedPriorities = ["critical", "high", "medium", "low"];
-    if (!allowedPriorities.includes(priority)) {
+    if (!priority || !allowedPriorities.includes(priority)) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        message: "Invalid priority value",
+        message: "Invalid priority. Must be one of: critical, high, medium, low",
       });
     }
 
@@ -76,6 +82,7 @@ export const createTicket = async (req: Request, res: Response) => {
   }
 };
 
+
 export const updateTicket = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
@@ -93,13 +100,13 @@ export const updateTicket = async (req: Request, res: Response) => {
 
     if (updates.priority && !allowedPriorities.includes(updates.priority)) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        message: "Invalid priority value",
+        message: "Invalid priority. Must be one of: critical, high, medium, low",
       });
     }
 
     if (updates.status && !allowedStatuses.includes(updates.status)) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        message: "Invalid status value",
+        message: "Invalid status. Must be one of: open, in-progress, resolved",
       });
     }
 
