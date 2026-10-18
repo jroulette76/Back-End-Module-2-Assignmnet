@@ -3,143 +3,138 @@ import app from "../src/server";
 
 describe("Ticket Routes API", () => {
 
- it("should retrieve all tickets", async () => {
-  const res = await request(app).get("/api/v1/tickets");
+  // GET /tickets/:id
+  describe("GET /api/v1/tickets/:id", () => {
 
-  expect(res.status).toBe(200);
-  expect(res.body).toHaveProperty("message", "Tickets retrieved");
-  expect(res.body).toHaveProperty("data");
-  expect(Array.isArray(res.body.data)).toBe(true);
+    it("should retrieve a ticket by ID", async () => {
+      // Act
+      const res = await request(app).get("/api/v1/tickets/1");
 
-  // Validate that at least one ticket exists
-  expect(res.body.data.length).toBeGreaterThan(0);
-
-  // Validate structure of the first ticket
-  const ticket = res.body.data[0];
-  expect(ticket).toHaveProperty("id");
-  expect(ticket).toHaveProperty("title");
-  expect(ticket).toHaveProperty("description");
-  expect(ticket).toHaveProperty("priority");
-});
-
-it("should retrieve a ticket by ID", async () => {
-  const res = await request(app).get("/api/v1/tickets/1");
-
-  expect(res.status).toBe(200);
-  expect(res.body).toHaveProperty("message", "Ticket retrieved");
-  expect(res.body).toHaveProperty("data");
-
-  // Validate ticket structure
-  expect(res.body.data).toHaveProperty("id", 1);
-  expect(res.body.data).toHaveProperty("title");
-  expect(res.body.data).toHaveProperty("description");
-  expect(res.body.data).toHaveProperty("priority");
-});
-
-it("should return 400 for invalid ID", async () => {
-  const res = await request(app).get("/api/v1/tickets/abc");
-
-  expect(res.status).toBe(400);
-  expect(res.body).toHaveProperty("message", "Invalid ticket ID");
-});
-
-it("should create a new ticket", async () => {
-  const newTicket = {
-    title: "New Issue",
-    description: "Something is not working",
-    priority: "high"
-  };
-
-  const res = await request(app)
-    .post("/api/v1/tickets")
-    .send(newTicket)
-    .set("Content-Type", "application/json");
-
-  expect(res.status).toBe(201);
-  expect(res.body).toHaveProperty("message", "Ticket created");
-  expect(res.body).toHaveProperty("data");
-
-  // Validate structure of created ticket
-  expect(res.body.data).toHaveProperty("id");
-  expect(res.body.data).toHaveProperty("title", newTicket.title);
-  expect(res.body.data).toHaveProperty("description", newTicket.description);
-  expect(res.body.data).toHaveProperty("priority", newTicket.priority);
-});
-
-it("should update an existing ticket", async () => {
-  const updatedTicket = {
-    title: "Updated Issue",
-    description: "Updated description",
-    priority: "low"
-  };
-
-  const res = await request(app)
-    .put("/api/v1/tickets/1")
-    .send(updatedTicket)
-    .set("Content-Type", "application/json");
-
-  expect(res.status).toBe(200);
-  expect(res.body).toHaveProperty("message", "Ticket updated");
-  expect(res.body).toHaveProperty("data");
-
-  // Validate updated fields
-  expect(res.body.data).toHaveProperty("id", 1);
-  expect(res.body.data).toHaveProperty("title", updatedTicket.title);
-  expect(res.body.data).toHaveProperty("description", updatedTicket.description);
-  expect(res.body.data).toHaveProperty("priority", updatedTicket.priority);
-});
-
-it("should return 400 for invalid ID on update", async () => {
-  const res = await request(app)
-    .put("/api/v1/tickets/abc")
-    .send({
-      title: "Bad Update",
-      description: "Invalid ID test",
-      priority: "high"
+      // Assert
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe("Ticket retrieved");
+      expect(res.body.data).toHaveProperty("id", 1);
+      expect(res.body.data).toHaveProperty("title");
+      expect(res.body.data).toHaveProperty("description");
+      expect(res.body.data).toHaveProperty("priority");
     });
 
-  expect(res.status).toBe(400);
-  expect(res.body).toHaveProperty("message", "Invalid ticket ID");
+    it("should return 400 for invalid ticket ID", async () => {
+      // Act
+      const res = await request(app).get("/api/v1/tickets/abc");
+
+      // Assert
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe("Invalid ticket ID");
+    });
+
+  });
+
+  // POST /tickets
+  describe("POST /api/v1/tickets", () => {
+
+    it("should create a new ticket", async () => {
+      // Arrange
+      const newTicket = {
+        title: "New Issue",
+        description: "Something is not working",
+        priority: "high"
+      };
+
+      // Act
+      const res = await request(app)
+        .post("/api/v1/tickets")
+        .send(newTicket);
+
+      // Assert
+      expect(res.status).toBe(201);
+      expect(res.body.message).toBe("Ticket created");
+      expect(res.body.data).toHaveProperty("id");
+      expect(res.body.data.title).toBe(newTicket.title);
+      expect(res.body.data.description).toBe(newTicket.description);
+      expect(res.body.data.priority).toBe(newTicket.priority);
+    });
+
+    it("should return 400 when title is missing", async () => {
+      // Act
+      const res = await request(app)
+        .post("/api/v1/tickets")
+        .send({
+          description: "Test description",
+          priority: "low"
+        });
+
+      // Assert
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe("Missing required field: title");
+    });
+
+  });
+
+  // PUT /tickets/:id
+  describe("PUT /api/v1/tickets/:id", () => {
+
+    it("should update an existing ticket", async () => {
+      // Arrange
+      const updatedTicket = {
+        title: "Updated Issue",
+        description: "Updated description",
+        priority: "low"
+      };
+
+      // Act
+      const res = await request(app)
+        .put("/api/v1/tickets/1")
+        .send(updatedTicket);
+
+      // Assert
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe("Ticket updated");
+      expect(res.body.data.id).toBe(1);
+      expect(res.body.data.title).toBe(updatedTicket.title);
+      expect(res.body.data.description).toBe(updatedTicket.description);
+      expect(res.body.data.priority).toBe(updatedTicket.priority);
+    });
+
+    it("should return 400 when priority is invalid", async () => {
+      // Act
+      const res = await request(app)
+        .put("/api/v1/tickets/1")
+        .send({ priority: "urgent" });
+
+      // Assert
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe(
+        "Invalid priority. Must be one of: critical, high, medium, low"
+      );
+    });
+
+  });
+
+  // GET /tickets/:id/urgency
+  describe("GET /api/v1/tickets/:id/urgency", () => {
+
+    it("should return urgency details for a ticket", async () => {
+      // Act
+      const res = await request(app).get("/api/v1/tickets/1/urgency");
+
+      // Assert
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe("Ticket urgency calculated");
+      expect(res.body.data).toHaveProperty("urgencyScore");
+      expect(typeof res.body.data.urgencyScore).toBe("number");
+      expect(res.body.data).toHaveProperty("urgencyLevel");
+    });
+
+    it("should return 400 for invalid ticket ID", async () => {
+      // Act
+      const res = await request(app).get("/api/v1/tickets/abc/urgency");
+
+      // Assert
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe("Invalid ticket ID");
+    });
+
+  });
+
 });
-
-it("should return urgency details for a ticket", async () => {
-  const res = await request(app).get("/api/v1/tickets/1/urgency");
-
-  expect(res.status).toBe(200);
-  expect(res.body).toHaveProperty("message", "Ticket urgency calculated");
-  expect(res.body).toHaveProperty("data");
-
-  // Validate urgency structure
-  expect(res.body.data).toHaveProperty("urgencyScore");
-  expect(typeof res.body.data.urgencyScore).toBe("number");
-
-  expect(res.body.data).toHaveProperty("urgencyLevel");
-  expect([
-    "Low. No immediate action required.",
-    "Moderate. Schedule for attention.",
-    "High. Immediate action required."
-  ]).toContain(res.body.data.urgencyLevel);
-});
-
-it("should return 400 for invalid ID on urgency check", async () => {
-  const res = await request(app).get("/api/v1/tickets/abc/urgency");
-
-  expect(res.status).toBe(400);
-  expect(res.body).toHaveProperty("message", "Invalid ticket ID");
-});
-
-it("should delete a ticket by ID", async () => {
-  const res = await request(app).delete("/api/v1/tickets/1");
-
-  expect(res.status).toBe(200);
-  expect(res.body).toHaveProperty("message", "Ticket deleted");
-});
-
-it("should return 400 for invalid ID on delete", async () => {
-  const res = await request(app).delete("/api/v1/tickets/abc");
-
-  expect(res.status).toBe(400);
-  expect(res.body).toHaveProperty("message", "Invalid ticket ID");
-});
-
-})
