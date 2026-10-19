@@ -136,6 +136,6 @@ export const getBaseScore = (priority: Ticket["priority"]): number => {
 export const getUrgencyLevel = (score: number): string => {
   if (score < 30) return "Low urgency. Address when capacity allows.";
   if (score < 55) return "Moderate. Schedule for attention.";
-  if (score < 80) return "High urgency. Prioritize resolution.";
+  if (score <= 80) return "High urgency. Prioritize resolution.";
   return "Critical. Immediate attention required.";
 };
